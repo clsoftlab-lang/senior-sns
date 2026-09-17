@@ -47,6 +47,24 @@ npx serve .
 - **배지** (`badges.js`) — 순수 규칙 함수가 `stats`(등정 횟수, 누적 고도, 서로 다른 100대 명산, 사진 게시물, 가입 모임, 좋아요 수, 게시물 수)를 평가합니다. `evaluateBadges(stats)` 는 획득 배지 id 배열을, `newlyEarned(stats, previous)` 는 새로 획득한 배지만 반환합니다. 규칙은 데이터 기반이며 단위 테스트로 검증됩니다.
 - **랭킹** (`ranking.js`) — `rankByMonthlyClimbs`, `rankByElevation` 이 내림차순 정렬(동점 2차 기준, 그다음 한글 이름순)된 **새 배열** 을 반환합니다. 입력을 변형하지 않는 순수 함수이며 단위 테스트로 검증됩니다.
 
+## 🤖 AI 기능 (API 연동)
+
+앱에는 작고 플러그블한 **AI-KIT**(`ai/`)가 들어 있으며, 세 가지 기능이 UI에 모두 연결되어 있습니다.
+
+1. **AI 등산·취미 코스 추천 챗봇** (`🤖 AI 도우미` 메뉴) — 앱의 산 데이터로 **계절·난이도**에 맞춰 추천.
+2. **게시글/등정 기록 글쓰기 도우미** (`올리기` 화면의 `🤖 AI 초안 작성`) — 몇 개의 단어로 따뜻한 초안 작성.
+3. **배지 달성 축하 문구 생성** (`배지` 화면의 획득 배지) — 축하 문구 자동 생성.
+
+**데모 기본값 = 목업(mock).** `ai/config.js` 의 `AI_ENDPOINT` 가 비어 있으면(기본값), 서버·키·설치 없이 **결정론적 한국어 MockProvider**로 완전히 동작합니다. 목업은 앱의 게시글/산/배지 데이터를 재사용하며, 답변은 토큰 단위로 스트리밍됩니다.
+
+**실제 Claude 연동 켜기:**
+
+1. `cd server && cp .env.example .env` 후 `ANTHROPIC_API_KEY` 설정 (모델: **`claude-opus-5`**).
+2. `npm install && npm start` — 프록시 `server/index.mjs` 가 `@anthropic-ai/sdk` 로 호출하고 스트리밍·CORS 처리.
+3. `ai/config.js` 에서 `AI_ENDPOINT = "http://localhost:8787/api/ai"` 로 설정.
+
+**⚠️ API 키는 오직 서버측에만 둡니다.** 브라우저는 키를 절대 보지 못하며, `{task, payload}` 만 프록시로 POST 하고 실제 호출은 서버가 `ANTHROPIC_API_KEY` 로 수행합니다. `ai/config.js`·브라우저 코드·저장소 어디에도 키를 넣지 마세요. `.gitignore` 가 `.env` 를 제외합니다. [`server/README.md`](./server/README.md) 참고.
+
 ## 데모 모드 경계 (DEMO-MODE)
 
 **이 프로젝트는 프론트엔드 데모입니다. 다음 한계를 반드시 확인하세요.**
@@ -73,6 +91,10 @@ app.js              SPA 진입점: 데이터 로드·라우팅·렌더링·상�
 badges.js           규칙 기반 배지 획득(순수·문서화·테스트)
 ranking.js          리더보드 정렬(순수·테스트)
 storage.js          localStorage 래퍼(try/catch + 초기화)
+ai/config.js        AI 엔드포인트 설정(빈 값=목업; 키는 절대 두지 않음)
+ai/ai.js            AI-KIT: askAI() — 결정론적 목업 또는 스트리밍 프록시
+server/index.mjs    백엔드 프록시 → Claude(claude-opus-5), 키는 서버측만
+server/.env.example ANTHROPIC_API_KEY 템플릿(.env 는 gitignore)
 data/               시드 JSON: 게시물(32)·산(20)·사용자(8)·모임(6)
 check.mjs           CI 검증 + 단위 테스트(외부 의존성 없음)
 .github/workflows/  ci.yml

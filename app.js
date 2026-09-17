@@ -9,6 +9,7 @@
 import { BADGES, evaluateBadges, newlyEarned, getBadge } from './badges.js';
 import { rankByMonthlyClimbs, rankByElevation, withRank } from './ranking.js';
 import { loadState, saveState, resetState } from './storage.js';
+import { askAI } from './ai/ai.js';
 
 // ---------- 전역 상태 ----------
 const DATA = { posts: [], mountains: [], users: [], groups: [] };
@@ -234,6 +235,8 @@ function viewUpload() {
           <select name="mountainId"><option value="">— 선택 안 함 —</option>${mtnOpts}</select>
         </label>
         <label>내용<textarea name="text" maxlength="280" rows="3" placeholder="오늘의 이야기를 적어주세요"></textarea></label>
+        <button type="button" class="btn btn-outline" id="ai-draft-btn">🤖 AI 초안 작성</button>
+        <p class="ai-hint muted">제목·장소·카테고리를 입력한 뒤 누르면, 따뜻한 게시글 초안을 대신 써드려요.</p>
         <button class="btn btn-primary" type="submit">올리기</button>
       </form>
     </section>`;
@@ -280,6 +283,8 @@ function viewBadges() {
       <strong>${esc(b.name)}</strong>
       <span class="muted">${esc(b.desc)}</span>
       <span class="badge-state">${has ? '획득함' : '미획득'}</span>
+      ${has ? `<button type="button" class="btn btn-outline btn-sm" data-congrats="${esc(b.id)}">🤖 축하 문구</button>
+      <p class="ai-answer" id="ai-congrats-${esc(b.id)}" aria-live="polite" hidden></p>` : ''}
     </div>`;
   }).join('');
   return `
@@ -383,9 +388,57 @@ function viewProfile() {
     </section>`;
 }
 
+// ---------- 뷰: AI 도우미 ----------
+function viewAI() {
+  const seasons = ['봄', '여름', '가을', '겨울'];
+  const seasonOpts = seasons.map((s) => `<option value="${s}">${s}</option>`).join('');
+  const levelOpts = ['', '초급', '중급', '고급']
+    .map((l) => `<option value="${l}">${l || '전체'}</option>`)
+    .join('');
+  return `
+    <section aria-labelledby="ai-h">
+      <h2 id="ai-h" class="view-title">🤖 AI 등산·취미 도우미</h2>
+      <p class="view-sub">계절과 난이도를 고르면 우리 앱의 산 데이터로 코스를 추천해드려요.
+        <span class="muted">(데모: 실제 AI 연동 전에는 규칙 기반 목업으로 동작합니다. 연결 방법은 README 참고)</span>
+      </p>
+      <form id="ai-reco-form" class="panel form">
+        <label>계절
+          <select name="season">${seasonOpts}</select>
+        </label>
+        <label>난이도
+          <select name="level">${levelOpts}</select>
+        </label>
+        <label>하고 싶은 말 (선택)
+          <input type="text" name="q" maxlength="80" placeholder="예: 단풍 보러 완만한 길로 가고 싶어요" />
+        </label>
+        <button class="btn btn-primary" type="submit">🤖 추천받기</button>
+      </form>
+      <div class="ai-answer" id="ai-reco-out" aria-live="polite" hidden></div>
+    </section>`;
+}
+
+// AI 요청을 실행하고 결과를 대상 요소에 스트리밍으로 채운다.
+async function runAI(task, payload, outEl, btn) {
+  if (!outEl) return;
+  outEl.hidden = false;
+  outEl.textContent = '';
+  outEl.classList.add('ai-loading');
+  if (btn) btn.disabled = true;
+  try {
+    await askAI(task, payload, { onToken: (t) => { outEl.textContent += t; } });
+  } catch (e) {
+    console.error(e);
+    outEl.textContent = 'AI 응답을 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+  } finally {
+    outEl.classList.remove('ai-loading');
+    if (btn) btn.disabled = false;
+  }
+}
+
 // ---------- 라우터 ----------
 const ROUTES = {
   feed: viewFeed,
+  ai: viewAI,
   upload: viewUpload,
   records: viewRecords,
   badges: viewBadges,
@@ -420,10 +473,65 @@ function render() {
 function bindViewEvents(route) {
   if (route === 'upload') {
     $('#upload-form').addEventListener('submit', onUploadSubmit);
+    const draftBtn = $('#ai-draft-btn');
+    if (draftBtn) draftBtn.addEventListener('click', onAiDraft);
   }
   if (route === 'profile') {
     $('#reset-btn').addEventListener('click', onReset);
   }
+  if (route === 'ai') {
+    $('#ai-reco-form').addEventListener('submit', onAiRecommend);
+  }
+  if (route === 'badges') {
+    document.querySelectorAll('[data-congrats]').forEach((btn) => {
+      btn.addEventListener('click', () => onAiCongrats(btn.getAttribute('data-congrats'), btn));
+    });
+  }
+}
+
+// AI: 코스 추천
+async function onAiRecommend(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const payload = {
+    season: fd.get('season') || '',
+    level: fd.get('level') || '',
+    query: (fd.get('q') || '').trim(),
+    mountains: DATA.mountains,
+  };
+  await runAI('recommend', payload, $('#ai-reco-out'), e.target.querySelector('button[type="submit"]'));
+}
+
+// AI: 글쓰기 초안 → 내용(textarea)에 스트리밍
+async function onAiDraft(e) {
+  const form = $('#upload-form');
+  const btn = e.currentTarget;
+  const area = form.querySelector('textarea[name="text"]');
+  const mId = form.querySelector('select[name="mountainId"]').value;
+  const payload = {
+    title: form.querySelector('input[name="title"]').value.trim(),
+    category: form.querySelector('select[name="category"]').value,
+    place: form.querySelector('input[name="place"]').value.trim(),
+    mountainName: mId ? mountainById(mId)?.name || '' : '',
+    keywords: area.value.trim(),
+  };
+  btn.disabled = true;
+  area.value = '';
+  try {
+    await askAI('draft', payload, { onToken: (t) => { area.value += t; } });
+  } catch (err) {
+    console.error(err);
+    toast('초안 작성에 실패했어요.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// AI: 배지 축하 문구
+async function onAiCongrats(badgeId, btn) {
+  const b = getBadge(badgeId);
+  if (!b) return;
+  await runAI('congrats', { badgeId, badgeName: b.name, badgeDesc: b.desc }, $('#ai-congrats-' + CSS.escape(badgeId)), btn);
 }
 
 // 피드 상호작용은 위임(delegation)으로 처리

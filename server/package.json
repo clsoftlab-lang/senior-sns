@@ -1,0 +1,19 @@
+{
+  "name": "jicheonmyeong-ai-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "지천명(知天命) AI 백엔드 프록시 — Claude via Anthropic SDK (키는 서버측에만 존재)",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node --env-file=.env index.mjs",
+    "start:noenv": "node index.mjs"
+  },
+  "engines": {
+    "node": ">=20.6.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0"
+  }
+}

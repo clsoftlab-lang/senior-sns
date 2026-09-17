@@ -47,6 +47,24 @@ Opening `index.html` directly via `file://` will not work because it loads JSON 
 - **Badges** (`badges.js`) — pure, documented rule functions evaluate a `stats` object (climbs, cumulative elevation, distinct 100대 명산, photo posts, groups joined, likes given, posts). `evaluateBadges(stats)` returns earned badge ids; `newlyEarned(stats, previous)` returns only freshly earned ones so the app can show a toast. Rules are data-driven and unit-tested.
 - **Ranking** (`ranking.js`) — `rankByMonthlyClimbs` and `rankByElevation` return a new sorted array (descending, with a secondary tiebreak, then Korean name order). Pure functions, do not mutate input, and are unit-tested.
 
+## 🤖 AI 기능 (API 연동)
+
+The app ships a small, pluggable **AI-KIT** (`ai/`) with three features, all wired into the UI:
+
+1. **AI 등산·취미 코스 추천 챗봇** (`🤖 AI 도우미` 메뉴) — recommends mountains/hobbies from the app's own data by **season & difficulty**.
+2. **게시글/등정 기록 글쓰기 도우미** (`올리기` 화면의 `🤖 AI 초안 작성`) — drafts a warm post from a few words.
+3. **배지 달성 축하 문구 생성** (`배지` 화면의 획득 배지) — generates a congratulation line.
+
+**Demo default = mock.** With `ai/config.js` `AI_ENDPOINT` empty (the default), everything works offline via a **deterministic Korean MockProvider** that reuses the app's posts/mountains/badges data — no server, no key, nothing to install. Answers stream token-by-token for a live feel.
+
+**Enable real Claude:**
+
+1. `cd server && cp .env.example .env` and set `ANTHROPIC_API_KEY` (model: **`claude-opus-5`**).
+2. `npm install && npm start` (the proxy `server/index.mjs` uses `@anthropic-ai/sdk`, streams responses, and sets CORS).
+3. In `ai/config.js`, set `AI_ENDPOINT = "http://localhost:8787/api/ai"`.
+
+**⚠️ API keys live server-side ONLY.** The browser never sees a key — it only POSTs `{task, payload}` to your proxy, which calls Claude with the server's `ANTHROPIC_API_KEY`. Never put a key in `ai/config.js`, any browser code, or the repository. `.gitignore` excludes `.env`. See [`server/README.md`](./server/README.md).
+
 ## DEMO-MODE boundaries
 
 **This is a front-end demo only. Please read these limits:**
@@ -73,6 +91,10 @@ app.js              SPA entry: data load, routing, rendering, interactions
 badges.js           rule-based badge awarding (pure, documented, tested)
 ranking.js          leaderboard sorting (pure, tested)
 storage.js          localStorage wrapper (try/catch + reset)
+ai/config.js        AI endpoint config (empty = mock; no key ever here)
+ai/ai.js            AI-KIT: askAI() — deterministic mock OR streaming proxy
+server/index.mjs    backend proxy → Claude (claude-opus-5), key server-side only
+server/.env.example ANTHROPIC_API_KEY template (.env is gitignored)
 data/               seed JSON: posts (32), mountains (20), users (8), groups (6)
 check.mjs           CI checks + unit tests (no external deps)
 .github/workflows/  ci.yml

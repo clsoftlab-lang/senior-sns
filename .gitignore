@@ -1,5 +1,10 @@
-# Dependencies (this project has none — pure static, no build)
+# Dependencies (frontend has none — pure static; server/ uses @anthropic-ai/sdk)
 node_modules/
+
+# Secrets — API keys live ONLY in server-side env, never committed
+.env
+.env.*
+!.env.example
 
 # Logs
 *.log

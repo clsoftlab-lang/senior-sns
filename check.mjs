@@ -17,6 +17,8 @@ import { dirname, join } from 'node:path';
 
 import { BADGES, evaluateBadges, newlyEarned, getBadge } from './badges.js';
 import { rankBy, rankByMonthlyClimbs, rankByElevation, withRank } from './ranking.js';
+import { AI_ENDPOINT } from './ai/config.js';
+import { AI_TASKS, askAI } from './ai/ai.js';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 let pass = 0;
@@ -95,7 +97,7 @@ const required = [
 ];
 for (const [name, re] of required) assert(re.test(html), '포함: ' + name);
 // 7개 라우트 모두 존재
-for (const r of ['feed', 'upload', 'records', 'badges', 'ranking', 'groups', 'profile']) {
+for (const r of ['feed', 'ai', 'upload', 'records', 'badges', 'ranking', 'groups', 'profile']) {
   assert(new RegExp(`data-route="${r}"`).test(html), `라우트 링크: ${r}`);
 }
 
@@ -166,6 +168,69 @@ eq(rankBy([], 'monthlyClimbs'), [], '빈 배열 정렬 안전');
   // 문자/누락 값도 0으로 처리
   const r = rankBy([{ name: 'x' }, { name: 'y', v: 3 }], 'v');
   eq(r[0].name, 'y', '누락 필드 0 처리');
+}
+
+// ---------- 6) AI 레이어 검증 ----------
+console.log('\n[6] AI 레이어 (문법 · 설정 · 목업 · 키 스캔)');
+const rel = (f) => f.replace(ROOT, '.').replace(/\\/g, '/');
+
+// 6a) ai/ + server/ 폴더의 JS 를 명시적으로 node --check
+for (const dir of ['ai', 'server']) {
+  const full = join(ROOT, dir);
+  let files = [];
+  try { files = collectJs(full); } catch { /* 폴더 없음 */ }
+  assert(files.length >= 1, `${dir}/ JS 파일 존재`, `found ${files.length}`);
+  for (const file of files) {
+    try {
+      execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' });
+      ok('문법 OK: ' + rel(file));
+    } catch (e) {
+      bad('문법 오류: ' + rel(file), (e.stderr || e).toString().split('\n')[0]);
+    }
+  }
+}
+
+// 6b) 데모는 반드시 목업(빈 엔드포인트)로 동작 — 브라우저에 엔드포인트/키 노출 금지
+assert(AI_ENDPOINT === '', 'AI_ENDPOINT 는 데모에서 빈 문자열', `got ${JSON.stringify(AI_ENDPOINT)}`);
+assert(Array.isArray(AI_TASKS) && AI_TASKS.length === 3, 'AI_TASKS 3종 정의');
+
+// 6c) 목업이 앱 데이터를 재사용해 결정론적으로 동작하는지
+{
+  const sampleMtn = (mountains || []).filter((m) => (m.season || []).includes('가을'));
+  const reco = await askAI('recommend', { season: '가을', level: '', mountains: sampleMtn });
+  assert(typeof reco === 'string' && reco.length > 0, 'mock recommend 문자열 반환');
+  if (sampleMtn[0]) assert(reco.includes(sampleMtn[0].name) || reco.includes('산'), 'mock recommend 앱 산 데이터 반영');
+
+  const badge = BADGES[0];
+  const congrats = await askAI('congrats', { badgeId: badge.id });
+  assert(congrats.includes(badge.name), 'mock congrats 배지 데이터 반영');
+
+  const draft = await askAI('draft', { title: '가을 산행', category: '등산', place: '북한산' });
+  assert(draft.includes('가을 산행') && draft.includes('북한산'), 'mock draft 입력 반영');
+}
+
+// 6d) 저장소 어디에도 실제 API 키 형식이 없어야 함 (.env 는 스캔 제외 — 실제 키가 정상적으로 존재)
+{
+  const KEY_RE = new RegExp("sk-" + "ant-[A-Za-z0-9_-]{20,}");
+  function collectAll(dir) {
+    const out = [];
+    for (const name of readdirSync(dir)) {
+      if (['node_modules', '.git', '.github'].includes(name)) continue;
+      const full = join(dir, name);
+      if (statSync(full).isDirectory()) out.push(...collectAll(full));
+      else out.push(full);
+    }
+    return out;
+  }
+  const leaks = [];
+  for (const file of collectAll(ROOT)) {
+    const base = file.split(/[\\/]/).pop();
+    if (base === '.env' || (base.startsWith('.env.') && base !== '.env.example')) continue;
+    let content;
+    try { content = readFileSync(file, 'utf8'); } catch { continue; }
+    if (KEY_RE.test(content)) leaks.push(rel(file));
+  }
+  assert(leaks.length === 0, '실제 API 키 형식 미포함(저장소 전체 스캔)', leaks.join(', '));
 }
 
 // ---------- 결과 ----------
