@@ -7,8 +7,8 @@
   "type": "module",
   "main": "index.mjs",
   "scripts": {
-    "start": "node --env-file=.env index.mjs",
-    "start:noenv": "node index.mjs"
+    "start": "node index.mjs",
+    "deploy": "wrangler deploy"
   },
   "engines": {
     "node": ">=20.6.0"

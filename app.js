@@ -41,6 +41,14 @@ function sameMonth(ts) {
   const d = new Date(ts);
   return d.getFullYear() === NOW.getFullYear() && d.getMonth() === NOW.getMonth();
 }
+// 현재 달로 계절을 추정 (봄 3~5, 여름 6~8, 가을 9~11, 겨울 12~2).
+function seasonOfNow() {
+  const m = NOW.getMonth() + 1;
+  if (m >= 3 && m <= 5) return '봄';
+  if (m >= 6 && m <= 8) return '여름';
+  if (m >= 9 && m <= 11) return '가을';
+  return '겨울';
+}
 
 // ---------- SVG 플레이스홀더 ----------
 // 사진: 산 능선 실루엣, 색상은 hue 로 결정 (실제 사진 없음 — 데모용).
@@ -160,8 +168,39 @@ function viewFeed() {
     <section aria-labelledby="feed-h">
       <h2 id="feed-h" class="view-title">홈 피드</h2>
       <p class="view-sub">취미와 등산 이야기를 나눠요. 사진을 눌러 좋아요와 댓글을 달 수 있어요.</p>
+      <section class="panel digest" aria-label="이번 주 추천 산·취미 모임 다이제스트">
+        <h3 class="digest-title">📬 이번 주 추천 <span class="muted">(${esc(seasonOfNow())} · AI 자동 생성)</span></h3>
+        <div class="ai-answer digest-out" id="digest-out" aria-live="polite">추천을 준비하고 있어요… 🍃</div>
+      </section>
       <div class="feed">${cards}</div>
     </section>`;
+}
+
+// 무인(autonomous) 기능: 홈 피드가 뜰 때 "이번 주 추천 산·취미 모임 다이제스트"를
+// 앱의 산·모임 데이터로 자동 생성한다. askAI 를 쓰므로 오프라인 목업에서도 동작하고,
+// 실 모드에서 실패하면 ai.js 가 목업으로 자동 폴백한다. 세션 내 1회만 생성해 캐시한다.
+let digestCache = null;
+async function runDigest() {
+  const out = $('#digest-out');
+  if (!out) return;
+  if (digestCache) { out.textContent = digestCache; return; }
+  const payload = {
+    season: seasonOfNow(),
+    level: '',
+    mountains: DATA.mountains,
+    groups: DATA.groups,
+  };
+  out.textContent = '';
+  out.classList.add('ai-loading');
+  try {
+    await askAI('digest', payload, { onToken: (t) => { out.textContent += t; } });
+    digestCache = out.textContent;
+  } catch (e) {
+    console.error(e);
+    out.textContent = '지금은 추천을 불러올 수 없어요. 잠시 후 다시 열어보세요.';
+  } finally {
+    out.classList.remove('ai-loading');
+  }
 }
 
 function renderPostCard(p) {
@@ -471,6 +510,10 @@ function render() {
 
 // ---------- 뷰별 이벤트 바인딩 ----------
 function bindViewEvents(route) {
+  if (route === 'feed') {
+    // 무인 자동 다이제스트 생성 (앱 로드/피드 진입 시).
+    runDigest();
+  }
   if (route === 'upload') {
     $('#upload-form').addEventListener('submit', onUploadSubmit);
     const draftBtn = $('#ai-draft-btn');

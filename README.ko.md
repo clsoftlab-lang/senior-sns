@@ -54,16 +54,30 @@ npx serve .
 1. **AI 등산·취미 코스 추천 챗봇** (`🤖 AI 도우미` 메뉴) — 앱의 산 데이터로 **계절·난이도**에 맞춰 추천.
 2. **게시글/등정 기록 글쓰기 도우미** (`올리기` 화면의 `🤖 AI 초안 작성`) — 몇 개의 단어로 따뜻한 초안 작성.
 3. **배지 달성 축하 문구 생성** (`배지` 화면의 획득 배지) — 축하 문구 자동 생성.
+4. **이번 주 추천 다이제스트 (무인·자동)** — 앱을 열면 **홈 피드** 상단에 계절·난이도에 맞춘 "이번 주 추천 산/취미 모임 다이제스트"가 산·모임 데이터로 자동 생성됩니다. `askAI` 로 동작하므로 오프라인 목업에서도 그대로 작동합니다.
 
 **데모 기본값 = 목업(mock).** `ai/config.js` 의 `AI_ENDPOINT` 가 비어 있으면(기본값), 서버·키·설치 없이 **결정론적 한국어 MockProvider**로 완전히 동작합니다. 목업은 앱의 게시글/산/배지 데이터를 재사용하며, 답변은 토큰 단위로 스트리밍됩니다.
 
 **실제 Claude 연동 켜기:**
 
-1. `cd server && cp .env.example .env` 후 `ANTHROPIC_API_KEY` 설정 (모델: **`claude-opus-5`**).
+1. `cd server && cp .env.example .env` 후 `ANTHROPIC_API_KEY` 설정 (비용 우선 기본 모델: **`claude-haiku-4-5`**, `AI_MODEL` 로 상향 가능).
 2. `npm install && npm start` — 프록시 `server/index.mjs` 가 `@anthropic-ai/sdk` 로 호출하고 스트리밍·CORS 처리.
 3. `ai/config.js` 에서 `AI_ENDPOINT = "http://localhost:8787/api/ai"` 로 설정.
 
 **⚠️ API 키는 오직 서버측에만 둡니다.** 브라우저는 키를 절대 보지 못하며, `{task, payload}` 만 프록시로 POST 하고 실제 호출은 서버가 `ANTHROPIC_API_KEY` 로 수행합니다. `ai/config.js`·브라우저 코드·저장소 어디에도 키를 넣지 마세요. `.gitignore` 가 `.env` 를 제외합니다. [`server/README.md`](./server/README.md) 참고.
+
+## ⚙️ 고도화 — 무인·저비용 실 AI 연동
+
+이 빌드는 AI 레이어를 **무인(autonomous) · 실제 AI 연결(real Claude) · 비용 합리적(cost-efficient)** 으로 고도화하면서, 기존 기능은 모두 그대로 유지합니다.
+
+- **비용 우선 모델.** 기본 **`claude-haiku-4-5`** (약 **$1 / $5 per MTok** 입력/출력), `AI_MODEL` 로 변경 가능(`claude-sonnet-5` / `claude-opus-5` 로 품질↑·비용↑).
+- **프롬프트 캐싱.** 작업별 고정 시스템 프롬프트를 `cache_control:{type:'ephemeral'}` 블록으로 보내, 반복 호출 시 캐시를 읽어 비용을 낮춥니다.
+- **출력 상한 + 가드레일.** 작업별 `max_tokens`(약 700), IP당 분당 요청 제한(20), 월 토큰 예산(`AI_MONTHLY_TOKEN_CAP`, 기본 2,000,000). 초과 시 HTTP `429 {fallback:true}`.
+- **대략적 비용 추정.** Haiku 4.5 기준 짧은 근거 호출(입력 ~1.5k + 출력 ~0.4k)은 **건당 약 $0.004 → 1,000건당 약 $4** 수준이며, 프롬프트 캐싱으로 반복 호출의 입력 비용은 더 낮아집니다.
+- **무인 무료 호스팅.** **Cloudflare Workers** 변형(`server/worker.js` + `wrangler.toml`)을 무료 티어에 한 번 배포하면 운영할 서버가 없습니다. 키는 `wrangler secret put ANTHROPIC_API_KEY` 로 서버측에만 둡니다.
+- **절대 멈추지 않음.** 엔드포인트 오류·`429 {fallback:true}`·네트워크 실패 시 `ai/ai.js` 가 **오프라인 목업으로 자동 폴백**합니다(스트리밍은 `onToken` 으로 유지). 그래서 앱을 열 때의 "이번 주 추천 다이제스트"는 서버가 없어도 항상 표시됩니다.
+
+**API 키는 서버측에만 — 브라우저나 저장소에는 절대 두지 않습니다.**
 
 ## 데모 모드 경계 (DEMO-MODE)
 
@@ -92,9 +106,11 @@ badges.js           규칙 기반 배지 획득(순수·문서화·테스트)
 ranking.js          리더보드 정렬(순수·테스트)
 storage.js          localStorage 래퍼(try/catch + 초기화)
 ai/config.js        AI 엔드포인트 설정(빈 값=목업; 키는 절대 두지 않음)
-ai/ai.js            AI-KIT: askAI() — 결정론적 목업 또는 스트리밍 프록시
-server/index.mjs    백엔드 프록시 → Claude(claude-opus-5), 키는 서버측만
-server/.env.example ANTHROPIC_API_KEY 템플릿(.env 는 gitignore)
+ai/ai.js            AI-KIT: askAI() — 목업 또는 스트리밍 프록시, 자동 목업 폴백
+server/index.mjs    Node 프록시 → Claude(기본 claude-haiku-4-5), 키는 서버측만
+server/worker.js    Cloudflare Workers 변형(무료 티어, 무인)
+server/wrangler.toml Workers 배포 설정
+server/.env.example ANTHROPIC_API_KEY + 모델/비용 설정(.env 는 gitignore)
 data/               시드 JSON: 게시물(32)·산(20)·사용자(8)·모임(6)
 check.mjs           CI 검증 + 단위 테스트(외부 의존성 없음)
 .github/workflows/  ci.yml

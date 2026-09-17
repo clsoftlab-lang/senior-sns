@@ -192,7 +192,8 @@ for (const dir of ['ai', 'server']) {
 
 // 6b) 데모는 반드시 목업(빈 엔드포인트)로 동작 — 브라우저에 엔드포인트/키 노출 금지
 assert(AI_ENDPOINT === '', 'AI_ENDPOINT 는 데모에서 빈 문자열', `got ${JSON.stringify(AI_ENDPOINT)}`);
-assert(Array.isArray(AI_TASKS) && AI_TASKS.length === 3, 'AI_TASKS 3종 정의');
+assert(Array.isArray(AI_TASKS) && AI_TASKS.length === 4, 'AI_TASKS 4종 정의(recommend·draft·congrats·digest)');
+assert(AI_TASKS.includes('digest'), 'AI_TASKS 에 digest(무인 다이제스트) 포함');
 
 // 6c) 목업이 앱 데이터를 재사용해 결정론적으로 동작하는지
 {
@@ -207,6 +208,16 @@ assert(Array.isArray(AI_TASKS) && AI_TASKS.length === 3, 'AI_TASKS 3종 정의')
 
   const draft = await askAI('draft', { title: '가을 산행', category: '등산', place: '북한산' });
   assert(draft.includes('가을 산행') && draft.includes('북한산'), 'mock draft 입력 반영');
+
+  // 무인 다이제스트: 앱의 산·모임 데이터를 근거로 오프라인에서도 생성되는지
+  const digest = await askAI('digest', { season: '가을', level: '', mountains: mountains || [], groups: groups || [] });
+  assert(typeof digest === 'string' && digest.includes('다이제스트'), 'mock digest 문자열 반환');
+  {
+    const fallMtn = (mountains || []).filter((m) => (m.season || []).includes('가을'))
+      .slice().sort((a, b) => (a.elevation || 0) - (b.elevation || 0) || a.name.localeCompare(b.name, 'ko'));
+    if (fallMtn[0]) assert(digest.includes(fallMtn[0].name), 'mock digest 앱 산 데이터 반영');
+    if ((groups || []).length) assert(digest.includes('👥') || digest.includes('모임'), 'mock digest 앱 모임 데이터 반영');
+  }
 }
 
 // 6d) 저장소 어디에도 실제 API 키 형식이 없어야 함 (.env 는 스캔 제외 — 실제 키가 정상적으로 존재)

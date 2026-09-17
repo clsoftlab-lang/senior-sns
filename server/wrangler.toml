@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)
+#
+# Cloudflare Workers config for the 지천명(知天命) AI proxy (server/worker.js).
+# Deploy on the FREE tier — no server to babysit (무인).
+#
+#   cd server
+#   npx wrangler deploy
+#   npx wrangler secret put ANTHROPIC_API_KEY   # key stays server-side only
+#
+# The key is a SECRET (never put it here or in the repo). Only non-secret,
+# cost-tuning knobs live in [vars].
+
+name = "jicheonmyeong-ai-proxy"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+# Cost-first default. Raise to "claude-sonnet-5" or "claude-opus-5" for higher quality.
+AI_MODEL = "claude-haiku-4-5"
+# Effort is ignored for Haiku models; used only for sonnet/opus.
+AI_EFFORT = "low"
+# Restrict to your site origin in production (e.g. "https://clsoftlab-lang.github.io").
+CORS_ORIGIN = "*"
+
+# ANTHROPIC_API_KEY is set as a SECRET, never here:
+#   npx wrangler secret put ANTHROPIC_API_KEY
