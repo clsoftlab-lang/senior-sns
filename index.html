@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: Apache-2.0
+  Copyright 2026 CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)
+-->
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="지천명(知天命) — 40대 이상 중년을 위한 취미·등산 SNS 데모. 등정 기록, 배지, 랭킹, 모임." />
+  <meta name="color-scheme" content="light dark" />
+  <title>지천명 知天命 · 중년의 취미·등산 SNS</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232e7d5b'/%3E%3Cpath d='M4 26 L12 12 L18 20 L22 14 L28 26 Z' fill='%23fff'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#view">본문 바로가기</a>
+
+  <header class="topbar">
+    <button id="hamburger" class="icon-btn" aria-label="메뉴 열기/닫기" aria-controls="nav">☰</button>
+    <a class="brand" href="#/feed">
+      <span class="brand-mark" aria-hidden="true">⛰</span>
+      <span class="brand-text">지천명 <em>知天命</em></span>
+    </a>
+    <div class="topbar-actions">
+      <button id="toggle-large" class="icon-btn" aria-pressed="false" title="큰 글씨" aria-label="큰 글씨 전환">가<span aria-hidden="true">＋</span></button>
+      <button id="toggle-theme" class="icon-btn" title="테마 전환" aria-label="밝게/어둡게 전환">◐</button>
+    </div>
+  </header>
+
+  <div class="layout" id="app">
+    <nav id="nav" class="sidebar" aria-label="주요 메뉴">
+      <a data-route="feed" href="#/feed">🏠 홈 피드</a>
+      <a data-route="upload" href="#/upload">📷 올리기</a>
+      <a data-route="records" href="#/records">⛰ 등정 기록</a>
+      <a data-route="badges" href="#/badges">🏅 배지</a>
+      <a data-route="ranking" href="#/ranking">🏆 랭킹</a>
+      <a data-route="groups" href="#/groups">👥 모임</a>
+      <a data-route="profile" href="#/profile">🙂 프로필</a>
+      <p class="nav-note">데모 모드 · 모든 데이터는 허구이며 이 브라우저에만 저장됩니다.</p>
+    </nav>
+
+    <div class="scrim" aria-hidden="true"></div>
+
+    <main id="view" class="view" tabindex="-1" aria-live="polite">
+      <!-- 뷰는 app.js가 렌더링합니다 -->
+      <div class="panel"><p>불러오는 중…</p></div>
+    </main>
+  </div>
+
+  <footer class="foot-note">
+    <p>지천명 데모 · Apache-2.0 · Not an official Anthropic product.</p>
+  </footer>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

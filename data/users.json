@@ -1,0 +1,13 @@
+{
+  "meta": { "note": "허구의 데모용 사용자. 실제 인물과 무관하며 개인정보가 아닙니다." },
+  "users": [
+    { "id": "u-me", "name": "나 (데모)", "handle": "@me", "ageBand": "50대", "region": "서울", "hue": 205, "bio": "지천명, 이제 산이 좋아졌습니다." },
+    { "id": "u-jung", "name": "정상만", "handle": "@jungsang", "ageBand": "60대", "region": "강원", "hue": 145, "bio": "백두대간 종주가 꿈입니다." },
+    { "id": "u-park", "name": "박여명", "handle": "@yeomyeong", "ageBand": "50대", "region": "경기", "hue": 25, "bio": "새벽 산행과 사진을 좋아해요." },
+    { "id": "u-kim", "name": "김솔밭", "handle": "@solbat", "ageBand": "40대", "region": "부산", "hue": 265, "bio": "주말마다 근교 산을 오릅니다." },
+    { "id": "u-lee", "name": "이단풍", "handle": "@danpung", "ageBand": "60대", "region": "전북", "hue": 5, "bio": "가을 단풍 사진 수집가." },
+    { "id": "u-choi", "name": "최텃밭", "handle": "@tetbat", "ageBand": "50대", "region": "충남", "hue": 95, "bio": "텃밭과 서예, 그리고 등산." },
+    { "id": "u-han", "name": "한서예", "handle": "@seoye", "ageBand": "70대", "region": "대구", "hue": 320, "bio": "붓글씨 40년, 산행 10년." },
+    { "id": "u-oh", "name": "오봉우리", "handle": "@bonguri", "ageBand": "40대", "region": "광주", "hue": 180, "bio": "100대 명산 도전 중입니다." }
+  ]
+}

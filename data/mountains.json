@@ -1,0 +1,25 @@
+{
+  "meta": { "note": "허구의 데모용 산 데이터. 실제 수치와 다를 수 있습니다.", "unit": "m" },
+  "mountains": [
+    { "id": "m-halla", "name": "한라산", "region": "제주", "elevation": 1947, "famous100": true, "season": ["봄", "여름", "가을", "겨울"], "course": "성판악 코스", "desc": "남한 최고봉, 백록담 분화구 조망" },
+    { "id": "m-jiri", "name": "지리산", "region": "경남·전남", "elevation": 1915, "famous100": true, "season": ["봄", "가을"], "course": "천왕봉 중산리 코스", "desc": "능선 종주로 유명한 국립공원" },
+    { "id": "m-seorak", "name": "설악산", "region": "강원", "elevation": 1708, "famous100": true, "season": ["가을"], "course": "대청봉 오색 코스", "desc": "단풍과 암릉의 절경" },
+    { "id": "m-deogyu", "name": "덕유산", "region": "전북", "elevation": 1614, "famous100": true, "season": ["겨울"], "course": "향적봉 곤돌라 코스", "desc": "겨울 설경과 주목 군락" },
+    { "id": "m-taebaek", "name": "태백산", "region": "강원", "elevation": 1567, "famous100": true, "season": ["겨울"], "course": "천제단 유일사 코스", "desc": "완만해 초보에게 좋은 눈꽃 명산" },
+    { "id": "m-sobaek", "name": "소백산", "region": "충북·경북", "elevation": 1440, "famous100": true, "season": ["여름", "겨울"], "course": "비로봉 삼가 코스", "desc": "능선 초원과 철쭉" },
+    { "id": "m-odae", "name": "오대산", "region": "강원", "elevation": 1563, "famous100": true, "season": ["가을"], "course": "비로봉 상원사 코스", "desc": "전나무 숲길이 아름다운 산" },
+    { "id": "m-chiak", "name": "치악산", "region": "강원", "elevation": 1288, "famous100": true, "season": ["가을"], "course": "비로봉 구룡사 코스", "desc": "가파른 계단으로 유명" },
+    { "id": "m-gaya", "name": "가야산", "region": "경남·경북", "elevation": 1433, "famous100": true, "season": ["봄", "가을"], "course": "상왕봉 백운동 코스", "desc": "해인사와 기암괴석" },
+    { "id": "m-woraksan", "name": "월악산", "region": "충북", "elevation": 1097, "famous100": true, "season": ["가을"], "course": "영봉 덕주사 코스", "desc": "충주호 조망이 시원한 바위산" },
+    { "id": "m-bukhan", "name": "북한산", "region": "서울·경기", "elevation": 836, "famous100": true, "season": ["봄", "가을"], "course": "백운대 우이동 코스", "desc": "수도권 대표 화강암 명산" },
+    { "id": "m-gwanak", "name": "관악산", "region": "서울·경기", "elevation": 632, "famous100": true, "season": ["봄", "가을"], "course": "연주대 서울대 코스", "desc": "도심 근교 인기 산행지" },
+    { "id": "m-cheonggye", "name": "청계산", "region": "서울·경기", "elevation": 618, "famous100": false, "season": ["봄", "여름", "가을"], "course": "매봉 원터골 코스", "desc": "완만해 걷기 좋은 근교 산" },
+    { "id": "m-namhan", "name": "남한산", "region": "경기", "elevation": 522, "famous100": false, "season": ["봄", "가을"], "course": "청량산 남한산성 코스", "desc": "성곽길 산책과 역사 탐방" },
+    { "id": "m-palgong", "name": "팔공산", "region": "대구·경북", "elevation": 1192, "famous100": true, "season": ["봄", "가을"], "course": "비로봉 동화사 코스", "desc": "갓바위 기도처로 유명" },
+    { "id": "m-mudeung", "name": "무등산", "region": "광주·전남", "elevation": 1187, "famous100": true, "season": ["여름", "가을"], "course": "서석대 증심사 코스", "desc": "주상절리 입석대와 서석대" },
+    { "id": "m-naejang", "name": "내장산", "region": "전북", "elevation": 763, "famous100": true, "season": ["가을"], "course": "신선봉 단풍 코스", "desc": "가을 단풍 최고 명소" },
+    { "id": "m-juwang", "name": "주왕산", "region": "경북", "elevation": 721, "famous100": true, "season": ["봄", "가을"], "course": "주봉 대전사 코스", "desc": "협곡과 폭포가 아름다운 산" },
+    { "id": "m-daedun", "name": "대둔산", "region": "전북·충남", "elevation": 878, "famous100": true, "season": ["가을"], "course": "마천대 케이블카 코스", "desc": "구름다리와 암봉 절경" },
+    { "id": "m-gyeryong", "name": "계룡산", "region": "대전·충남", "elevation": 845, "famous100": true, "season": ["봄", "가을"], "course": "관음봉 동학사 코스", "desc": "능선 조망이 뛰어난 국립공원" }
+  ]
+}

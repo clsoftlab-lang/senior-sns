@@ -1,0 +1,11 @@
+{
+  "meta": { "note": "허구의 데모용 모임 데이터." },
+  "groups": [
+    { "id": "g-hiking", "name": "지천명 등산클럽", "category": "등산", "members": 1284, "hue": 145, "desc": "40세 이상, 매주 근교·명산 산행을 함께합니다." },
+    { "id": "g-photo", "name": "느린 셔터 사진회", "category": "사진", "members": 862, "hue": 205, "desc": "풍경·야생화·별사진을 나누는 중년 사진 모임." },
+    { "id": "g-garden", "name": "주말 텃밭 사람들", "category": "텃밭", "members": 571, "hue": 95, "desc": "작은 텃밭 가꾸기와 제철 작물 이야기." },
+    { "id": "g-calli", "name": "먹향 서예반", "category": "서예", "members": 318, "hue": 320, "desc": "붓글씨로 마음을 다스리는 사람들." },
+    { "id": "g-100", "name": "100대 명산 도전단", "category": "등산", "members": 947, "hue": 25, "desc": "대한민국 100대 명산 완등을 함께 도전." },
+    { "id": "g-walk", "name": "동네 둘레길 걷기", "category": "걷기", "members": 1103, "hue": 180, "desc": "무릎에 부담 적은 평지·둘레길 걷기 모임." }
+  ]
+}
